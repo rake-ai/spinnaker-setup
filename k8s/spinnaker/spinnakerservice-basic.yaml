@@ -1,0 +1,52 @@
+apiVersion: spinnaker.io/v1alpha2
+kind: SpinnakerService
+metadata:
+  name: spinnaker
+  namespace: spinnaker
+spec:
+  spinnakerConfig:
+    config:
+      version: 1.33.0  # Using a stable version
+      
+      # Persistent Storage Configuration (MinIO)
+      persistentStorage:
+        persistentStoreType: s3
+        s3:
+          bucket: spinnaker
+          rootFolder: front50
+          endpoint: http://minio.minio.svc.cluster.local:9000
+          accessKeyId: minioadmin
+          secretAccessKey: minioadmin123
+          pathStyleAccess: true
+    
+    # Profiles for authentication configuration
+    profiles:
+      # Deck (UI) configuration - Enable basic form authentication
+      deck:
+        settings-local.js: |
+          window.spinnakerSettings = window.spinnakerSettings || {};
+          window.spinnakerSettings.authEnabled = true;
+      
+      # Gate (API Gateway) configuration - Basic form authentication
+      gate:
+        # Basic form authentication
+        security:
+          basicform:
+            enabled: true
+        
+        # Spring Security configuration with credentials
+        spring:
+          security:
+            user:
+              name: admin
+              password: admin123
+        
+        # CORS Configuration
+        cors:
+          allowed-origins-pattern: ^https?://(?:localhost|127\.0\.0\.1|0\.0\.0\.1|0\.0\.0\.0)(?::[0-9]+)?/?$
+  
+  # Expose Services
+  expose:
+    type: service
+    service:
+      type: ClusterIP

@@ -1,0 +1,1285 @@
+{
+  "info": {
+    "_postman_id": "4d797f28-0345-4170-b94d-3feb25d3f538",
+    "name": "Spinnaker API",
+    "description": "Comprehensive collection of Spinnaker API endpoints for managing applications, pipelines, and deployments.\n\n**Base URL:** http://localhost:8084\n**Authentication:** Basic Auth (admin/admin123)\n\n**Documentation:** See docs/features/ for detailed guides on each feature.\n\n## Features Covered\n\n1. **Applications** - Create, update, list, and manage Spinnaker applications\n2. **Pipelines** - Create, configure, execute, and manage CI/CD pipelines\n3. **System** - Health checks and version information\n\n## Quick Start\n\n1. Ensure Spinnaker is running with port forwards active:\n   - Gate: localhost:8084\n   - Deck: localhost:9000\n2. Authentication is pre-configured with basic auth (admin/admin123)\n3. Start with the \"01 - Applications\" folder to create your first application\n4. Then move to \"02 - Pipelines\" to create and execute pipelines\n\n## API Testing\n\nAll requests are tested and working. Use the {{baseUrl}} variable which is set to http://localhost:8084",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "admin",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "admin123",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8084",
+      "description": "Spinnaker Gate API base URL",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Applications",
+      "description": "Application management endpoints - create, update, list, and manage Spinnaker applications.\n\nApplications are the top-level organizational unit in Spinnaker. Each application can contain multiple pipelines, clusters, load balancers, and security groups.",
+      "item": [
+        {
+          "name": "List All Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ]
+            },
+            "description": "Get a list of all applications in Spinnaker.\n\n**Response includes:**\n- Application name\n- Email contact\n- Cloud providers\n- Creation timestamp\n- Last modified information"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"createApplication\",\n    \"application\": {\n      \"name\": \"myapp\",\n      \"email\": \"admin@example.com\",\n      \"cloudProviders\": \"kubernetes\",\n      \"description\": \"My application\",\n      \"instancePort\": 80,\n      \"platformHealthOnly\": false\n    },\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Create Application: myapp\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Create a new application in Spinnaker using the task endpoint.\n\n**Returns:** A task object with:\n- `ref` - Task reference ID (format: /tasks/{taskId})\n- Use the task ID to check creation status\n\n**Required fields:**\n- `name` - Application name (lowercase, alphanumeric)\n- `email` - Contact email\n- `cloudProviders` - Comma-separated list (e.g., \"kubernetes\")\n\n**Optional fields:**\n- `description` - Application description\n- `instancePort` - Default port (default: 80)\n- `platformHealthOnly` - Health check mode (default: false)\n\n**Next step:** Use \"Get Task Status\" to verify creation completed successfully."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/:taskId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                ":taskId"
+              ],
+              "variable": [
+                {
+                  "key": "taskId",
+                  "value": "",
+                  "description": "Task ID returned from create/update operations"
+                }
+              ]
+            },
+            "description": "Check the status of a task returned from create/update operations.\n\n**Task States:**\n- `RUNNING` - Task is in progress\n- `SUCCEEDED` - Task completed successfully\n- `TERMINAL` - Task failed\n\n**Usage:**\nAfter creating or updating an application, extract the task ID from the response and use it here to verify completion."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Application Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/myapp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "myapp"
+              ]
+            },
+            "description": "Get detailed information about a specific application.\n\n**Response includes:**\n- Application attributes (name, email, cloud providers, etc.)\n- Associated clusters\n- Load balancers\n- Security groups\n- Pipelines configuration"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Application History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/myapp/history?limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "myapp",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of history entries to return"
+                }
+              ]
+            },
+            "description": "Get the change history for an application.\n\n**Shows:**\n- Configuration changes\n- Who made the change\n- When the change was made\n- What was changed"
+          },
+          "response": []
+        },
+        {
+          "name": "List Application Pipelines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/myapp/pipelineConfigs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "myapp",
+                "pipelineConfigs"
+              ]
+            },
+            "description": "Get all pipeline configurations for an application.\n\n**Response includes:**\n- Pipeline name and ID\n- Stages configuration\n- Triggers\n- Parameters\n- Notifications"
+          },
+          "response": []
+        },
+        {
+          "name": "List Application Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/myapp/tasks?limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "myapp",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of tasks to return"
+                }
+              ]
+            },
+            "description": "Get recent tasks/activities for an application.\n\n**Tasks include:**\n- Pipeline executions\n- Deploy operations\n- Configuration updates\n- Manual actions"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"updateApplication\",\n    \"application\": {\n      \"name\": \"myapp\",\n      \"email\": \"updated@example.com\",\n      \"description\": \"Updated description\"\n    },\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Update Application: myapp\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Update application properties using the task endpoint.\n\n**Returns:** A task ID\n\n**Updatable fields:**\n- `email` - Contact email\n- `description` - Application description\n- `cloudProviders` - Cloud provider list\n- `instancePort` - Default port\n\n**Note:** Use \"Get Task Status\" to verify the update completed."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications?name=myapp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "myapp",
+                  "description": "Application name to search for (supports partial match)"
+                }
+              ]
+            },
+            "description": "Search applications by name.\n\n**Supports:**\n- Partial name matching\n- Case-insensitive search\n- Wildcard patterns"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Pipelines",
+      "description": "Pipeline management endpoints - create, configure, execute, and manage Spinnaker pipelines.\n\nPipelines are automated workflows that define how your software moves through stages from build to production. Each pipeline consists of stages that run sequentially or in parallel.",
+      "item": [
+        {
+          "name": "List Pipeline Configurations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/myapp/pipelineConfigs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "myapp",
+                "pipelineConfigs"
+              ]
+            },
+            "description": "List all pipeline configurations for an application.\n\n**Response includes:**\n- Pipeline name and ID\n- Stages (wait, deploy, manual judgment, etc.)\n- Triggers (manual, webhook, cron, etc.)\n- Parameters\n- Notifications"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Simple Pipeline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application\": \"myapp\",\n  \"name\": \"simple-wait-pipeline\",\n  \"stages\": [\n    {\n      \"type\": \"wait\",\n      \"name\": \"Wait 30 seconds\",\n      \"refId\": \"1\",\n      \"waitTime\": 30\n    }\n  ],\n  \"triggers\": [],\n  \"parameterConfig\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pipelines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines"
+              ]
+            },
+            "description": "Create a simple pipeline with a wait stage.\n\n**This example demonstrates:**\n- Basic pipeline structure\n- Single wait stage\n- Stage referencing with refId\n\n**Stage Properties:**\n- `type` - Stage type (wait, deploy, manualJudgment, etc.)\n- `name` - Display name\n- `refId` - Unique reference ID for dependencies\n- `waitTime` - Duration in seconds"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Manual Judgment Pipeline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application\": \"myapp\",\n  \"name\": \"approval-pipeline\",\n  \"stages\": [\n    {\n      \"type\": \"wait\",\n      \"name\": \"Initial Wait\",\n      \"refId\": \"1\",\n      \"waitTime\": 10\n    },\n    {\n      \"type\": \"manualJudgment\",\n      \"name\": \"Manual Approval\",\n      \"refId\": \"2\",\n      \"requisiteStageRefIds\": [\"1\"],\n      \"instructions\": \"Please review and approve\",\n      \"judgmentInputs\": [\n        {\"value\": \"approve\"},\n        {\"value\": \"reject\"}\n      ]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pipelines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines"
+              ]
+            },
+            "description": "Create a pipeline with manual approval gate.\n\n**This example demonstrates:**\n- Multi-stage pipeline\n- Stage dependencies (stage 2 waits for stage 1)\n- Manual judgment/approval process\n\n**Manual Judgment Properties:**\n- `instructions` - Message shown to approver\n- `judgmentInputs` - Available decision options\n- `requisiteStageRefIds` - Stages that must complete first\n\n**Use case:** Production deployment approvals"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Parameterized Pipeline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application\": \"myapp\",\n  \"name\": \"parameterized-pipeline\",\n  \"parameterConfig\": [\n    {\n      \"name\": \"environment\",\n      \"label\": \"Environment\",\n      \"required\": true,\n      \"default\": \"dev\",\n      \"description\": \"Target environment\",\n      \"options\": [\n        {\"value\": \"dev\"},\n        {\"value\": \"staging\"},\n        {\"value\": \"prod\"}\n      ]\n    },\n    {\n      \"name\": \"version\",\n      \"label\": \"Version\",\n      \"required\": true,\n      \"default\": \"1.0.0\",\n      \"description\": \"Version to deploy\"\n    }\n  ],\n  \"stages\": [\n    {\n      \"type\": \"wait\",\n      \"name\": \"Deploy to ${parameters.environment}\",\n      \"refId\": \"1\",\n      \"waitTime\": 30\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pipelines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines"
+              ]
+            },
+            "description": "Create a pipeline with parameters for dynamic execution.\n\n**This example demonstrates:**\n- Parameter definition\n- Parameter types (text, dropdown)\n- Required vs optional parameters\n- Using parameters in stage names with ${parameters.name}\n\n**Parameter Properties:**\n- `name` - Parameter identifier\n- `label` - Display name\n- `required` - Whether parameter is mandatory\n- `default` - Default value\n- `options` - Dropdown choices (optional)\n\n**Use case:** Deploy different versions to different environments"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Pipeline Configuration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"pipeline-id\",\n  \"application\": \"myapp\",\n  \"name\": \"simple-wait-pipeline\",\n  \"stages\": [\n    {\n      \"type\": \"wait\",\n      \"name\": \"Updated Wait\",\n      \"refId\": \"1\",\n      \"waitTime\": 60\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pipelines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{baseUrl}}",
+                "pipelines"
+              ]
+            },
+            "description": "Update an existing pipeline configuration.\n\n**Important:** \n- Use POST method (PUT returns 405)\n- Must include the actual pipeline ID from GET /applications/{app}/pipelineConfigs/{name}\n- Endpoint: /pipelines (same as create)\n\n**Steps:**\n1. Get pipeline ID: GET /applications/{app}/pipelineConfigs/{name}\n2. Update with POST including the ID in request body\n\n**You can update:**\n- Stages\n- Triggers\n- Parameters\n- Notifications\n- Name (with caution)\n\n**Note:** Updating a pipeline doesn't affect running executions."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Pipeline",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pipelines/myapp/simple-wait-pipeline",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines",
+                "myapp",
+                "simple-wait-pipeline"
+              ]
+            },
+            "description": "Delete a pipeline configuration.\n\n**Warning:** This is permanent and cannot be undone.\n\n**URL Format:** /pipelines/{application}/{pipelineName}\n\n**Note:** Deleting a pipeline configuration doesn't delete historical executions."
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Pipeline Execution",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"manual\",\n  \"parameters\": {\n    \"environment\": \"dev\",\n    \"version\": \"1.0.0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pipelines/myapp/simple-wait-pipeline",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines",
+                "myapp",
+                "simple-wait-pipeline"
+              ]
+            },
+            "description": "Trigger a pipeline execution with optional parameters.\n\n**Request Body:**\n- `type` - Trigger type (manual, webhook, etc.)\n- `parameters` - Parameter values for parameterized pipelines\n\n**Returns:** Execution reference with ID\n\n**Next step:** Use \"Get Pipeline Execution Details\" to monitor progress."
+          },
+          "response": []
+        },
+        {
+          "name": "List Pipeline Executions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/myapp/pipelines?limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "myapp",
+                "pipelines"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of executions to return"
+                }
+              ]
+            },
+            "description": "List recent pipeline executions for an application.\n\n**Response includes:**\n- Execution ID\n- Pipeline name\n- Status (RUNNING, SUCCEEDED, TERMINAL, etc.)\n- Start and end times\n- Trigger information\n- Stage details"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pipeline Execution Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pipelines/:executionId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines",
+                ":executionId"
+              ],
+              "variable": [
+                {
+                  "key": "executionId",
+                  "value": "",
+                  "description": "Execution ID returned from trigger operation"
+                }
+              ]
+            },
+            "description": "Get detailed information about a specific pipeline execution.\n\n**Response includes:**\n- Overall execution status\n- Each stage's status and duration\n- Stage outputs and context\n- Trigger details\n- Parameter values used"
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Pipeline Execution",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pipelines/:executionId/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines",
+                ":executionId",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "executionId",
+                  "value": "",
+                  "description": "Execution ID to cancel"
+                }
+              ]
+            },
+            "description": "Cancel a running pipeline execution.\n\n**Effect:**\n- Stops all running stages\n- Marks execution as CANCELED\n- Cannot be resumed\n\n**Use case:** Stop a deployment that's going wrong"
+          },
+          "response": []
+        },
+        {
+          "name": "Pause Pipeline Execution",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pipelines/:executionId/pause",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines",
+                ":executionId",
+                "pause"
+              ],
+              "variable": [
+                {
+                  "key": "executionId",
+                  "value": "",
+                  "description": "Execution ID to pause"
+                }
+              ]
+            },
+            "description": "Pause a running pipeline execution.\n\n**Effect:**\n- Pauses execution after current stage completes\n- Can be resumed later\n- Useful for investigation\n\n**Use case:** Pause to investigate issues before continuing"
+          },
+          "response": []
+        },
+        {
+          "name": "Resume Pipeline Execution",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pipelines/:executionId/resume",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines",
+                ":executionId",
+                "resume"
+              ],
+              "variable": [
+                {
+                  "key": "executionId",
+                  "value": "",
+                  "description": "Execution ID to resume"
+                }
+              ]
+            },
+            "description": "Resume a paused pipeline execution.\n\n**Effect:**\n- Continues execution from where it was paused\n- Picks up at the next pending stage\n\n**Prerequisite:** Pipeline must be in PAUSED state"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "description": "System health and information endpoints for monitoring Spinnaker services.",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Check the health status of the Spinnaker Gate service.\n\n**Response:**\n```json\n{\n  \"status\": \"UP\"\n}\n```\n\n**Status values:**\n- `UP` - Service is healthy\n- `DOWN` - Service has issues\n\n**Use case:** Health checks for monitoring and load balancers"
+          },
+          "response": []
+        },
+        {
+          "name": "Version Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/version",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "version"
+              ]
+            },
+            "description": "Get Spinnaker version information.\n\n**Response includes:**\n- Spinnaker version\n- Build information\n- Component versions\n\n**Use case:** Verify installed version and build details"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Tasks & Executions",
+      "item": [
+        {
+          "name": "List Application Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/tasks?limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Maximum number of tasks to return"
+                },
+                {
+                  "key": "statuses",
+                  "value": "RUNNING,SUCCEEDED,TERMINAL",
+                  "description": "Filter by status (comma-separated)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get list of recent tasks for an application. Tasks represent atomic operations like creates, updates, deploys, etc."
+          }
+        },
+        {
+          "name": "Get Task Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "{{taskId}}"
+              ]
+            },
+            "description": "Get detailed information about a specific task including all stages, status, and context."
+          }
+        },
+        {
+          "name": "Cancel Task",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks",
+                "{{taskId}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancel a running task. Only works for tasks in RUNNING state."
+          }
+        },
+        {
+          "name": "Get Pipeline Execution History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/pipelines?pipelineConfigIds={{pipelineName}}&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "pipelines"
+              ],
+              "query": [
+                {
+                  "key": "pipelineConfigIds",
+                  "value": "{{pipelineName}}",
+                  "description": "Filter by pipeline configuration name"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Maximum number of executions to return"
+                },
+                {
+                  "key": "statuses",
+                  "value": "SUCCEEDED,TERMINAL",
+                  "description": "Filter by execution status (optional)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get execution history for a specific pipeline. Note: The /pipelineConfigs/{name}/history endpoint returns 404, so we use the pipelines endpoint with pipelineConfigIds filter."
+          }
+        },
+        {
+          "name": "Search Executions by Correlation ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/pipelines/search?q=correlationId:{{correlationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "pipelines",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "correlationId:{{correlationId}}",
+                  "description": "Search query for correlation ID"
+                }
+              ]
+            },
+            "description": "Find pipeline executions by correlation ID to track related operations."
+          }
+        },
+        {
+          "name": "Get Failed Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/tasks?statuses=TERMINAL&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "statuses",
+                  "value": "TERMINAL",
+                  "description": "Filter for failed tasks"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get list of failed tasks for troubleshooting."
+          }
+        },
+        {
+          "name": "Restart Failed Stage",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pipelines/{{executionId}}/stages/{{stageId}}/restart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pipelines",
+                "{{executionId}}",
+                "stages",
+                "{{stageId}}",
+                "restart"
+              ]
+            },
+            "description": "Restart a failed stage within an execution. Get stage ID from execution details."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Clusters & Server Groups",
+      "description": "Infrastructure management endpoints - manage clusters, server groups, and instances for application deployments.",
+      "item": [
+        {
+          "name": "List Application Clusters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/clusters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "clusters"
+              ],
+              "query": [
+                {
+                  "key": "account",
+                  "value": "my-k8s-account",
+                  "description": "Filter by cloud account",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all clusters for an application. Clusters are logical groupings of server groups.\n\n**Response includes:**\n- Cluster names\n- Account and provider info\n- Server groups in each cluster\n- Instance counts"
+          }
+        },
+        {
+          "name": "Get Cluster Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/clusters/{{account}}/{{clusterName}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "clusters",
+                "{{account}}",
+                "{{clusterName}}"
+              ]
+            },
+            "description": "Get detailed information about a specific cluster including all server groups, load balancers, and security groups."
+          }
+        },
+        {
+          "name": "List Server Groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/serverGroups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "serverGroups"
+              ],
+              "query": [
+                {
+                  "key": "account",
+                  "value": "my-k8s-account",
+                  "description": "Filter by account",
+                  "disabled": true
+                },
+                {
+                  "key": "region",
+                  "value": "default",
+                  "description": "Filter by region/namespace",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all server groups for an application across all clusters.\n\n**Server Group:** Collection of instances running the same version."
+          }
+        },
+        {
+          "name": "Get Server Group Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/serverGroups/{{account}}/{{region}}/{{serverGroupName}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "serverGroups",
+                "{{account}}",
+                "{{region}}",
+                "{{serverGroupName}}"
+              ]
+            },
+            "description": "Get detailed information about a specific server group.\n\n**Response includes:**\n- Instance list with health status\n- Capacity (min/max/desired)\n- Build info and image\n- Load balancer associations\n- Launch configuration"
+          }
+        },
+        {
+          "name": "Resize Server Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"resizeServerGroup\",\n    \"serverGroupName\": \"myapp-prod-v001\",\n    \"capacity\": {\n      \"min\": 2,\n      \"max\": 10,\n      \"desired\": 5\n    },\n    \"region\": \"default\",\n    \"credentials\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Resize myapp-prod-v001 to 5 instances\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Scale a server group by adjusting capacity (min/max/desired instance counts).\n\n**Use cases:**\n- Manual scaling\n- Capacity adjustment\n- Load handling\n\n**Returns:** Task ID to monitor operation status"
+          }
+        },
+        {
+          "name": "Enable Server Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"enableServerGroup\",\n    \"serverGroupName\": \"myapp-prod-v001\",\n    \"region\": \"default\",\n    \"credentials\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Enable myapp-prod-v001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Enable a server group to start receiving traffic from load balancers.\n\n**Effect:** Adds server group to load balancer target groups"
+          }
+        },
+        {
+          "name": "Disable Server Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"disableServerGroup\",\n    \"serverGroupName\": \"myapp-prod-v001\",\n    \"region\": \"default\",\n    \"credentials\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Disable myapp-prod-v001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Disable a server group to stop receiving new traffic.\n\n**Effect:** Removes from load balancer but keeps instances running\n\n**Use case:** Blue/green deployment - disable old version"
+          }
+        },
+        {
+          "name": "Destroy Server Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"destroyServerGroup\",\n    \"serverGroupName\": \"myapp-prod-v001\",\n    \"region\": \"default\",\n    \"credentials\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Destroy myapp-prod-v001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Permanently delete a server group and all its instances.\n\n**Warning:** This is destructive and cannot be undone.\n\n**Safety:** Cannot destroy the last server group in a cluster"
+          }
+        },
+        {
+          "name": "Rollback Server Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"rollbackServerGroup\",\n    \"serverGroupName\": \"myapp-prod-v002\",\n    \"region\": \"default\",\n    \"credentials\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Rollback from myapp-prod-v002\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Rollback deployment by enabling the previous server group and disabling the current one.\n\n**What happens:**\n1. Enables previous version (v001)\n2. Disables current version (v002)\n3. Optionally destroys current version\n\n**Use case:** Quick recovery from bad deployment"
+          }
+        },
+        {
+          "name": "Get Instance Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/instances/{{account}}/{{region}}/{{instanceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "instances",
+                "{{account}}",
+                "{{region}}",
+                "{{instanceId}}"
+              ]
+            },
+            "description": "Get detailed information about a specific instance.\n\n**Response includes:**\n- Health status\n- Launch time\n- Zone/availability\n- Load balancers\n- Cloud provider metadata"
+          }
+        },
+        {
+          "name": "Terminate Instance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"terminateInstances\",\n    \"instanceIds\": [\"myapp-prod-v001-abc123\"],\n    \"region\": \"default\",\n    \"credentials\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Terminate unhealthy instance\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Terminate a specific instance.\n\n**Effect:** Removes instance; auto-scaling will create replacement if needed\n\n**Use case:** Remove unhealthy or misbehaving instance"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Load Balancers",
+      "description": "Load balancer management endpoints - distribute traffic across server groups with health checking and automatic failover.",
+      "item": [
+        {
+          "name": "List Application Load Balancers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/loadBalancers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "loadBalancers"
+              ],
+              "query": [
+                {
+                  "key": "account",
+                  "value": "my-k8s-account",
+                  "description": "Filter by cloud account",
+                  "disabled": true
+                },
+                {
+                  "key": "region",
+                  "value": "default",
+                  "description": "Filter by region/namespace",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all load balancers for an application. Response includes load balancer names and types, attached server groups, health status summary, and endpoints."
+          }
+        },
+        {
+          "name": "Get Load Balancer Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/loadBalancers/{{account}}/{{region}}/{{loadBalancerName}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "loadBalancers",
+                "{{account}}",
+                "{{region}}",
+                "{{loadBalancerName}}"
+              ]
+            },
+            "description": "Get detailed information about a specific load balancer including configuration, attached server groups and instances, health status, and endpoints."
+          }
+        },
+        {
+          "name": "Create Load Balancer (Service)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"upsertLoadBalancer\",\n    \"application\": \"myapp\",\n    \"account\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"namespace\": \"default\",\n    \"manifest\": {\n      \"apiVersion\": \"v1\",\n      \"kind\": \"Service\",\n      \"metadata\": {\n        \"name\": \"myapp-service\",\n        \"namespace\": \"default\"\n      },\n      \"spec\": {\n        \"type\": \"LoadBalancer\",\n        \"selector\": {\n          \"app\": \"myapp\"\n        },\n        \"ports\": [{\n          \"protocol\": \"TCP\",\n          \"port\": 80,\n          \"targetPort\": 8080\n        }]\n      }\n    }\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Create load balancer: myapp-service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Create a new Kubernetes Service load balancer. Service Types: ClusterIP (internal), NodePort (node IPs), LoadBalancer (external). Returns task ID to monitor creation."
+          }
+        },
+        {
+          "name": "Create Ingress Load Balancer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"upsertLoadBalancer\",\n    \"application\": \"myapp\",\n    \"account\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"namespace\": \"default\",\n    \"manifest\": {\n      \"apiVersion\": \"networking.k8s.io/v1\",\n      \"kind\": \"Ingress\",\n      \"metadata\": {\n        \"name\": \"myapp-ingress\",\n        \"namespace\": \"default\",\n        \"annotations\": {\n          \"kubernetes.io/ingress.class\": \"nginx\"\n        }\n      },\n      \"spec\": {\n        \"rules\": [{\n          \"host\": \"myapp.example.com\",\n          \"http\": {\n            \"paths\": [{\n              \"path\": \"/\",\n              \"pathType\": \"Prefix\",\n              \"backend\": {\n                \"service\": {\n                  \"name\": \"myapp-service\",\n                  \"port\": {\n                    \"number\": 80\n                  }\n                }\n              }\n            }]\n          }\n        }]\n      }\n    }\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Create ingress: myapp-ingress\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Create a Kubernetes Ingress for HTTP/HTTPS routing with host-based and path-based routing, TLS/SSL termination, and multiple backends support."
+          }
+        },
+        {
+          "name": "Update Load Balancer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"upsertLoadBalancer\",\n    \"application\": \"myapp\",\n    \"account\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"namespace\": \"default\",\n    \"manifest\": {\n      \"apiVersion\": \"v1\",\n      \"kind\": \"Service\",\n      \"metadata\": {\n        \"name\": \"myapp-service\",\n        \"namespace\": \"default\"\n      },\n      \"spec\": {\n        \"type\": \"LoadBalancer\",\n        \"selector\": {\n          \"app\": \"myapp\",\n          \"version\": \"v2\"\n        },\n        \"ports\": [{\n          \"protocol\": \"TCP\",\n          \"port\": 80,\n          \"targetPort\": 9090\n        }]\n      }\n    }\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Update load balancer: myapp-service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Update an existing load balancer configuration. Updatable fields include port mappings, selector labels, service type, and annotations."
+          }
+        },
+        {
+          "name": "Delete Load Balancer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": [{\n    \"type\": \"deleteLoadBalancer\",\n    \"loadBalancerName\": \"myapp-service\",\n    \"account\": \"my-k8s-account\",\n    \"cloudProvider\": \"kubernetes\",\n    \"namespace\": \"default\",\n    \"user\": \"admin\"\n  }],\n  \"application\": \"myapp\",\n  \"description\": \"Delete load balancer: myapp-service\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Delete a load balancer. Warning: This stops traffic to all associated server groups. Service/Ingress will be removed and external IP released."
+          }
+        },
+        {
+          "name": "Get Load Balancer Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/{{application}}/loadBalancers/{{account}}/{{region}}/{{loadBalancerName}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications",
+                "{{application}}",
+                "loadBalancers",
+                "{{account}}",
+                "{{region}}",
+                "{{loadBalancerName}}"
+              ]
+            },
+            "description": "Get load balancer with health information for all target instances including per-instance health status, healthy/unhealthy counts, and health check results."
+          }
+        }
+      ]
+    }
+  ]
+}

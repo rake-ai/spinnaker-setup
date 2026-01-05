@@ -1,0 +1,178 @@
+apiVersion: spinnaker.io/v1alpha2
+kind: SpinnakerService
+metadata:
+  name: spinnaker
+  namespace: spinnaker
+spec:
+  spinnakerConfig:
+    config:
+      version: 1.33.0  # Using stable version (2025.4.0 may not be available yet, adjust as needed)
+      
+      # Persistent Storage Configuration (MinIO)
+      persistentStorage:
+        persistentStoreType: s3
+        s3:
+          bucket: spinnaker
+          rootFolder: front50
+          endpoint: http://minio.minio.svc.cluster.local:9000
+          accessKeyId: minioadmin
+          secretAccessKey: minioadmin123
+          pathStyleAccess: true
+      
+      # Security Configuration
+      security:
+        apiSecurity:
+          ssl:
+            enabled: false
+          overrideBaseUrl: http://localhost:8084
+        uiSecurity:
+          ssl:
+            enabled: false
+          overrideBaseUrl: http://localhost:9000
+        
+        # Authentication Configuration
+        authn:
+          enabled: true
+          
+          # Basic Auth
+          basic:
+            enabled: true
+            user:
+              username: admin
+              password: admin
+          
+          # OAuth2 (GitHub)
+          oauth2:
+            enabled: true
+            client:
+              clientId: Ov23liwGrBJZbZQjsrd2
+              clientSecret: 7ccd2c4432c4abc9bb16c3b61a6996d5d91d1f2
+              userAuthorizationUri: https://github.com/login/oauth/authorize
+              accessTokenUri: https://github.com/login/oauth/access_token
+              scope: user:email
+            resource:
+              userInfoUri: https://api.github.com/user
+            userInfoMapping:
+              email: email
+              firstName: name
+              lastName: ""
+              username: login
+      
+      # Provider Configuration
+      providers:
+        kubernetes:
+          enabled: true
+          accounts:
+          # Docker Desktop (local) account
+          - name: docker-desktop
+            requiredGroupMembership: []
+            providerVersion: V2
+            permissions: {}
+            dockerRegistries: []
+            configureImagePullSecrets: true
+            cacheThreads: 1
+            namespaces: []
+            omitNamespaces: []
+            kinds: []
+            omitKinds: []
+            customResources: []
+            cachingPolicies: []
+            oAuthScopes: []
+            onlySpinnakerManaged: false
+            serviceAccount: true
+            kubeconfigFile: encryptedFile:k8s!n:spin-secrets!k:kubeconfig-docker-desktop
+          
+          primaryAccount: docker-desktop
+      
+      # CI Configuration (Jenkins)
+      ci:
+        jenkins:
+          enabled: true
+          masters:
+          - name: jenkins
+            address: http://jenkins.jenkins.svc.cluster.local:8080
+            username: admin
+            password: admin  # Change after initial setup
+            permissions: {}
+      
+      # Features
+      features:
+        artifacts: true
+        
+      # Deployment Configuration
+      deploymentEnvironment:
+        size: SMALL
+        type: Distributed
+        accountName: docker-desktop
+        updateVersions: true
+        consul:
+          enabled: false
+        vault:
+          enabled: false
+        customSizing: {}
+        sidecars: {}
+        initContainers: {}
+        hostAliases: {}
+        affinity: {}
+        tolerations: []
+        nodeSelectors: {}
+        gitConfig:
+          upstreamUser: spinnaker
+        livenessProbeConfig:
+          enabled: true
+        haServices:
+          clouddriver:
+            enabled: false
+          echo:
+            enabled: false
+    
+    # Service Settings
+    service-settings:
+      clouddriver:
+        kubernetes:
+          serviceAccountName: spinnaker-service-account
+      gate:
+        healthEndpoint: /health
+      deck:
+        env:
+          API_HOST: http://spin-gate.spinnaker.svc.cluster.local:8084
+    
+    # Profiles (halconfig snippets)
+    profiles:
+      gate:
+        server:
+          servlet:
+            context-path: /
+        
+        # CORS Configuration
+        cors:
+          allowed-origins-pattern: ^https?://(?:localhost|127\.0\.0\.1|0\.0\.0\.0)(?::[0-9]+)?/?$
+      
+      front50:
+        spinnaker:
+          s3:
+            versioning: false
+      
+      clouddriver:
+        artifacts:
+          s3:
+            enabled: true
+            accounts:
+            - name: minio-artifacts
+              region: us-east-1
+              endpoint: http://minio.minio.svc.cluster.local:9000
+              accessKeyId: minioadmin
+              secretAccessKey: minioadmin123
+              pathStyleAccess: true
+  
+  # Expose Services
+  expose:
+    type: service
+    service:
+      type: ClusterIP
+      annotations: {}
+      overrides:
+        gate:
+          publicPort: 8084
+        deck:
+          publicPort: 9000
