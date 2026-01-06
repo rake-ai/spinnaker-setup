@@ -153,6 +153,15 @@ spec:
             versioning: false
       
       clouddriver:
+        kubernetes:
+          accounts:
+          - name: docker-desktop
+            providerVersion: V2
+            onlySpinnakerManaged: false
+            kubeconfigFile: encryptedFile:k8s!n:spin-secrets!k:kubeconfig-docker-desktop
+            rawResourcesEndpointConfig:
+              kindExpressions: []
+              omitKindExpressions: []
         artifacts:
           s3:
             enabled: true
