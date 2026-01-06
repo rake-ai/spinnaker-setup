@@ -19,44 +19,44 @@ spec:
           secretAccessKey: minioadmin123
           pathStyleAccess: true
       
-      # Security Configuration
-      security:
-        apiSecurity:
-          ssl:
-            enabled: false
-          overrideBaseUrl: http://localhost:8084
-        uiSecurity:
-          ssl:
-            enabled: false
-          overrideBaseUrl: http://localhost:9000
-        
-        # Authentication Configuration
-        authn:
-          enabled: true
-          
-          # Basic Auth
-          basic:
-            enabled: true
-            user:
-              username: admin
-              password: admin
-          
-          # OAuth2 (GitHub)
-          oauth2:
-            enabled: true
-            client:
-              clientId: Ov23liwGrBJZbZQjsrd2
-              clientSecret: 7ccd2c4432c4abc9bb16c3b61a6996d5d91d1f2
-              userAuthorizationUri: https://github.com/login/oauth/authorize
-              accessTokenUri: https://github.com/login/oauth/access_token
-              scope: user:email
-            resource:
-              userInfoUri: https://api.github.com/user
-            userInfoMapping:
-              email: email
-              firstName: name
-              lastName: ""
-              username: login
+      # Security Configuration - DISABLED (using profiles for basic auth instead)
+      # security:
+      #   apiSecurity:
+      #     ssl:
+      #       enabled: false
+      #     overrideBaseUrl: http://localhost:8084
+      #   uiSecurity:
+      #     ssl:
+      #       enabled: false
+      #     overrideBaseUrl: http://localhost:9000
+      #   
+      #   # Authentication Configuration
+      #   authn:
+      #     enabled: true
+      #     
+      #     # Basic Auth
+      #     basic:
+      #       enabled: true
+      #       user:
+      #         username: admin
+      #         password: admin
+      #     
+      #     # OAuth2 (GitHub) - Not configured
+      #     # oauth2:
+      #     #   enabled: true
+      #     #   client:
+      #     #     clientId: YOUR_GITHUB_CLIENT_ID
+      #     #     clientSecret: YOUR_GITHUB_CLIENT_SECRET
+      #     #     userAuthorizationUri: https://github.com/login/oauth/authorize
+      #     #     accessTokenUri: https://github.com/login/oauth/access_token
+      #     #     scope: user:email
+      #     #   resource:
+      #     #     userInfoUri: https://api.github.com/user
+      #     #   userInfoMapping:
+      #     #     email: email
+      #     #     firstName: name
+      #     #     lastName: ""
+      #     #     username: login
       
       # Provider Configuration
       providers:
@@ -65,22 +65,15 @@ spec:
           accounts:
           # Docker Desktop (local) account
           - name: docker-desktop
-            requiredGroupMembership: []
             providerVersion: V2
-            permissions: {}
-            dockerRegistries: []
-            configureImagePullSecrets: true
-            cacheThreads: 1
-            namespaces: []
-            omitNamespaces: []
-            kinds: []
-            omitKinds: []
-            customResources: []
-            cachingPolicies: []
-            oAuthScopes: []
             onlySpinnakerManaged: false
-            serviceAccount: true
             kubeconfigFile: encryptedFile:k8s!n:spin-secrets!k:kubeconfig-docker-desktop
+          
+          # Minikube account (uncomment and configure if needed)
+          # - name: minikube
+          #   providerVersion: V2
+          #   onlySpinnakerManaged: false
+          #   kubeconfigFile: encryptedFile:k8s!n:spin-secrets!k:kubeconfig-minikube
           
           primaryAccount: docker-desktop
       
@@ -105,21 +98,8 @@ spec:
         type: Distributed
         accountName: docker-desktop
         updateVersions: true
-        consul:
-          enabled: false
-        vault:
-          enabled: false
-        customSizing: {}
-        sidecars: {}
-        initContainers: {}
-        hostAliases: {}
-        affinity: {}
-        tolerations: []
-        nodeSelectors: {}
         gitConfig:
           upstreamUser: spinnaker
-        livenessProbeConfig:
-          enabled: true
         haServices:
           clouddriver:
             enabled: false
@@ -139,7 +119,26 @@ spec:
     
     # Profiles (halconfig snippets)
     profiles:
+      # Deck (UI) configuration - Enable basic form authentication
+      deck:
+        settings-local.js: |
+          window.spinnakerSettings = window.spinnakerSettings || {};
+          window.spinnakerSettings.authEnabled = true;
+      
+      # Gate (API Gateway) configuration - Basic form authentication
       gate:
+        # Basic form authentication
+        security:
+          basicform:
+            enabled: true
+        
+        # Spring Security configuration with credentials
+        spring:
+          security:
+            user:
+              name: admin
+              password: admin123
+        
         server:
           servlet:
             context-path: /
