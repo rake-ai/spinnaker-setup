@@ -31,6 +31,38 @@ curl -u admin:admin123 http://localhost:8084/health
 - kubectl configured
 - Minimum 4GB RAM for Docker
 
+### Setup Instructions
+
+Run these commands in order to initialize the project:
+
+```bash
+# 1. Create MinIO namespace and deploy
+kubectl create ns minio
+kubectl apply -f k8s/minio/
+
+# 2. Create Jenkins namespace and deploy
+kubectl create ns jenkins
+kubectl apply -f k8s/jenkins/
+
+# 3. Apply Spinnaker Operator CRDs
+kubectl apply -f k8s/operator/crds
+
+# 4. Create Spinnaker Operator namespace and deploy
+kubectl create ns spinnaker-operator
+kubectl -n spinnaker-operator apply -f k8s/operator/cluster
+
+# 5. Create service accounts
+kubectl apply -f k8s/serviceaccounts/
+
+# 6. Create Spinnaker namespace and deploy
+kubectl create ns spinnaker
+kubectl -n spinnaker apply -f k8s/spinnaker/spinnakerservice-basic.yaml
+
+# 7. Setup port forwards (run after pods are ready)
+kubectl -n spinnaker port-forward svc/spin-gate 8084:80 &
+kubectl -n spinnaker port-forward svc/spin-deck 9000:80 &
+```
+
 ### Install Script
 ```bash
 #!/bin/bash
