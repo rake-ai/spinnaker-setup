@@ -578,10 +578,10 @@ The XL Release Spinnaker integration provides tasks to interact with Spinnaker's
 phases:
   - name: Build & Test
     tasks:
-      - name: Run Jenkins Build
-        type: jenkins.Build
+      - name: Run Build
+        type: xlrelease.ScriptTask
       - name: Run Tests
-        type: jenkins.Build
+        type: xlrelease.ScriptTask
   
   - name: Deploy to Dev
     tasks:

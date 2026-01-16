@@ -77,17 +77,6 @@ spec:
           
           primaryAccount: docker-desktop
       
-      # CI Configuration (Jenkins)
-      ci:
-        jenkins:
-          enabled: true
-          masters:
-          - name: jenkins
-            address: http://jenkins.jenkins.svc.cluster.local:8080
-            username: admin
-            password: admin  # Change after initial setup
-            permissions: {}
-      
       # Features
       features:
         artifacts: true

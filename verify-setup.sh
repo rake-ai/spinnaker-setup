@@ -8,7 +8,7 @@ echo ""
 echo "## 1. Namespace Verification"
 echo ""
 echo "### All Namespaces"
-kubectl get ns | grep -E "spinnaker|minio|jenkins"
+kubectl get ns | grep -E "spinnaker|minio"
 echo ""
 
 echo "## 2. Spinnaker Operator Status"
@@ -32,16 +32,7 @@ echo "### Bucket Creation Job"
 kubectl -n minio get job
 echo ""
 
-echo "## 4. Jenkins Status"
-echo ""
-echo "### Jenkins Pods"
-kubectl -n jenkins get pods
-echo ""
-echo "### Jenkins Services"
-kubectl -n jenkins get svc
-echo ""
-
-echo "## 5. Spinnaker Status"
+echo "## 4. Spinnaker Status"
 echo ""
 echo "### SpinnakerService"
 kubectl -n spinnaker get spinsvc spinnaker
@@ -53,7 +44,7 @@ echo "### Spinnaker Services"
 kubectl -n spinnaker get svc | grep spin-
 echo ""
 
-echo "## 6. Service Accounts"
+echo "## 5. Service Accounts"
 echo ""
 echo "### Spinnaker Namespace"
 kubectl -n spinnaker get sa

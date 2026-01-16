@@ -40,25 +40,21 @@ Run these commands in order to initialize the project:
 kubectl create ns minio
 kubectl apply -f k8s/minio/
 
-# 2. Create Jenkins namespace and deploy
-kubectl create ns jenkins
-kubectl apply -f k8s/jenkins/
-
-# 3. Apply Spinnaker Operator CRDs
+# 2. Apply Spinnaker Operator CRDs
 kubectl apply -f k8s/operator/crds
 
-# 4. Create Spinnaker Operator namespace and deploy
+# 3. Create Spinnaker Operator namespace and deploy
 kubectl create ns spinnaker-operator
 kubectl -n spinnaker-operator apply -f k8s/operator/cluster
 
-# 5. Create service accounts
+# 4. Create service accounts
 kubectl apply -f k8s/serviceaccounts/
 
-# 6. Create Spinnaker namespace and deploy
+# 5. Create Spinnaker namespace and deploy
 kubectl create ns spinnaker
 kubectl -n spinnaker apply -f k8s/spinnaker/spinnakerservice-basic.yaml
 
-# 7. Setup port forwards (run after pods are ready)
+# 6. Setup port forwards (run after pods are ready)
 kubectl -n spinnaker port-forward svc/spin-gate 8084:80 &
 kubectl -n spinnaker port-forward svc/spin-deck 9000:80 &
 ```
@@ -75,31 +71,26 @@ echo "Step 1: Deploying MinIO..."
 kubectl apply -f k8s/minio/
 kubectl wait --for=condition=complete job/create-minio-buckets -n minio --timeout=120s
 
-# 2. Deploy Jenkins
-echo "Step 2: Deploying Jenkins..."
-kubectl apply -f k8s/jenkins/
-kubectl wait --for=condition=available deployment/jenkins -n jenkins --timeout=120s
-
-# 3. Install Spinnaker Operator
-echo "Step 3: Installing Spinnaker Operator..."
+# 2. Install Spinnaker Operator
+echo "Step 2: Installing Spinnaker Operator..."
 kubectl apply -f k8s/operator/
 kubectl wait --for=condition=available deployment/spinnaker-operator -n spinnaker-operator --timeout=120s
 
-# 4. Create Service Accounts
-echo "Step 4: Creating Service Accounts..."
+# 3. Create Service Accounts
+echo "Step 3: Creating Service Accounts..."
 kubectl apply -f k8s/serviceaccounts/
 
-# 5. Deploy Spinnaker with Basic Auth
-echo "Step 5: Deploying Spinnaker..."
+# 4. Deploy Spinnaker with Basic Auth
+echo "Step 4: Deploying Spinnaker..."
 kubectl apply -f k8s/spinnaker/spinnakerservice-basic.yaml
 
-# 6. Wait for Spinnaker
-echo "Step 6: Waiting for Spinnaker services..."
+# 5. Wait for Spinnaker
+echo "Step 5: Waiting for Spinnaker services..."
 sleep 30
 kubectl wait --for=condition=ready pod -l app=spin -n spinnaker --timeout=300s
 
-# 7. Setup port forwards
-echo "Step 7: Setting up port forwards..."
+# 6. Setup port forwards
+echo "Step 6: Setting up port forwards..."
 kubectl -n spinnaker port-forward svc/spin-gate 8084:80 &
 kubectl -n spinnaker port-forward svc/spin-deck 9000:80 &
 
@@ -117,30 +108,24 @@ kubectl apply -f k8s/minio/
 kubectl get pods -n minio -w  # Wait for running
 ```
 
-**Step 2: Deploy Jenkins**
-```bash
-kubectl apply -f k8s/jenkins/
-kubectl get pods -n jenkins -w  # Wait for running
-```
-
-**Step 3: Install Spinnaker Operator**
+**Step 2: Install Spinnaker Operator**
 ```bash
 kubectl apply -f k8s/operator/
 kubectl get pods -n spinnaker-operator -w  # Wait for running
 ```
 
-**Step 4: Create Service Accounts**
+**Step 3: Create Service Accounts**
 ```bash
 kubectl apply -f k8s/serviceaccounts/
 ```
 
-**Step 5: Deploy Spinnaker with Basic Auth**
+**Step 4: Deploy Spinnaker with Basic Auth**
 ```bash
 kubectl apply -f k8s/spinnaker/spinnakerservice-basic.yaml
 kubectl get pods -n spinnaker -w  # Wait for all 8 pods
 ```
 
-**Step 6: Setup Port Forwards**
+**Step 5: Setup Port Forwards**
 ```bash
 kubectl -n spinnaker port-forward svc/spin-gate 8084:80 &
 kubectl -n spinnaker port-forward svc/spin-deck 9000:80 &
@@ -214,7 +199,6 @@ kubectl rollout restart deployment/spin-gate -n spinnaker
 |---------|---------|-----------|
 | Spinnaker Operator | Manages Spinnaker lifecycle | spinnaker-operator |
 | MinIO | S3-compatible storage | minio |
-| Jenkins | CI integration | jenkins |
 | clouddriver | Cloud provider integration | spinnaker |
 | deck | Web UI | spinnaker |
 | echo | Events/notifications | spinnaker |
@@ -380,7 +364,6 @@ This checks:
 - ✅ All namespaces present
 - ✅ Operator status
 - ✅ MinIO deployment
-- ✅ Jenkins deployment
 - ✅ All 8 Spinnaker services
 - ✅ Service accounts
 - ✅ Port-forwards running
@@ -395,7 +378,6 @@ This checks:
 - `k8s/spinnaker/spinnakerservice-basic.yaml` - Main Spinnaker config with basic auth
 
 **All Manifests:**
-- `k8s/jenkins/` - Jenkins deployment (2 YAML files)
 - `k8s/minio/` - MinIO storage (5 YAML files)
 - `k8s/operator/` - Spinnaker Operator (3 YAML files)
 - `k8s/serviceaccounts/` - RBAC config (3 YAML files)
