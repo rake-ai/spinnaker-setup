@@ -47,14 +47,19 @@ kubectl apply -f k8s/operator/crds
 kubectl create ns spinnaker-operator
 kubectl -n spinnaker-operator apply -f k8s/operator/cluster
 
-# 4. Create service accounts
+# 4. Create Spinnaker namespace and service accounts
+kubectl create ns spinnaker
 kubectl apply -f k8s/serviceaccounts/
 
-# 5. Create Spinnaker namespace and deploy
-kubectl create ns spinnaker
-kubectl -n spinnaker apply -f k8s/spinnaker/spinnakerservice-basic.yaml
+# 5. Create secret with kubeconfig for Kubernetes account
+kubectl create secret generic spin-secrets \
+  --from-file=kubeconfig-docker-desktop=$HOME/.kube/config \
+  -n spinnaker
 
-# 6. Setup port forwards (run after pods are ready)
+# 6. Deploy Spinnaker
+kubectl -n spinnaker apply -f k8s/spinnaker/spinnakerservice.yaml
+
+# 7. Setup port forwards (run after pods are ready)
 kubectl -n spinnaker port-forward svc/spin-gate 8084:80 &
 kubectl -n spinnaker port-forward svc/spin-deck 9000:80 &
 ```
@@ -80,8 +85,14 @@ kubectl wait --for=condition=available deployment/spinnaker-operator -n spinnake
 echo "Step 3: Creating Service Accounts..."
 kubectl apply -f k8s/serviceaccounts/
 
-# 4. Deploy Spinnaker with Basic Auth
-echo "Step 4: Deploying Spinnaker..."
+# 4. Create kubeconfig secret
+echo "Step 4: Creating kubeconfig secret..."
+kubectl create secret generic spin-secrets \
+  --from-file=kubeconfig-docker-desktop=$HOME/.kube/config \
+  -n spinnaker
+
+# 5. Deploy Spinnaker with Basic Auth
+echo "Step 5: Deploying Spinnaker..."
 kubectl apply -f k8s/spinnaker/spinnakerservice-basic.yaml
 
 # 5. Wait for Spinnaker
@@ -119,13 +130,20 @@ kubectl get pods -n spinnaker-operator -w  # Wait for running
 kubectl apply -f k8s/serviceaccounts/
 ```
 
-**Step 4: Deploy Spinnaker with Basic Auth**
+**Step 4: Create Kubeconfig Secret**
+```bash
+kubectl create secret generic spin-secrets \
+  --from-file=kubeconfig-docker-desktop=$HOME/.kube/config \
+  -n spinnaker
+```
+
+**Step 5: Deploy Spinnaker with Basic Auth**
 ```bash
 kubectl apply -f k8s/spinnaker/spinnakerservice-basic.yaml
 kubectl get pods -n spinnaker -w  # Wait for all 8 pods
 ```
 
-**Step 5: Setup Port Forwards**
+**Step 6: Setup Port Forwards**
 ```bash
 kubectl -n spinnaker port-forward svc/spin-gate 8084:80 &
 kubectl -n spinnaker port-forward svc/spin-deck 9000:80 &

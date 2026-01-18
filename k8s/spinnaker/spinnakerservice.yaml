@@ -170,6 +170,6 @@ spec:
       annotations: {}
       overrides:
         gate:
-          publicPort: 8084
+          publicPort: 80
         deck:
-          publicPort: 9000
+          publicPort: 80
